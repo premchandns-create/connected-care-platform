@@ -1,11 +1,17 @@
 ﻿{
-    "timestamp":  "2026-08-12 19:54:53Z",
+    "timestamp":  "2026-08-12 16:11:46Z",
     "results":  [
                     {
                         "name":  "dashboard",
                         "url":  "http://localhost:5080/api/dashboard",
                         "status":  "OK",
                         "file":  "C:\\VenSun\\connected-care-platform\\smoke\\dashboard.json"
+                    },
+                    {
+                        "name":  "mar",
+                        "url":  "http://localhost:5080/api/mar",
+                        "status":  "OK",
+                        "file":  "C:\\VenSun\\connected-care-platform\\smoke\\mar.json"
                     },
                     {
                         "name":  "health",

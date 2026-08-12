@@ -31,3 +31,4 @@ C:\VenSun\connected-care-platform\backend\obj\Debug\net8.0\refint\ConnectedCare.
 C:\VenSun\connected-care-platform\backend\obj\Debug\net8.0\ConnectedCare.Api.pdb
 C:\VenSun\connected-care-platform\backend\obj\Debug\net8.0\ConnectedCare.Api.genruntimeconfig.cache
 C:\VenSun\connected-care-platform\backend\obj\Debug\net8.0\ref\ConnectedCare.Api.dll
+C:\VenSun\connected-care-platform\backend\obj\Debug\net8.0\ConnectedCare.Api.sourcelink.json

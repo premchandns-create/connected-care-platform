@@ -1,0 +1,32 @@
+﻿[
+    {
+        "id":  "M0001",
+        "patientId":  "P001",
+        "medication":  "Metoprolol 50 mg",
+        "dose":  "50 mg",
+        "scheduledTime":  "08:00 AM",
+        "status":  "Pending",
+        "administeredBy":  "",
+        "administeredAt":  ""
+    },
+    {
+        "id":  "M0002",
+        "patientId":  "P002",
+        "medication":  "Aspirin 81 mg",
+        "dose":  "81 mg",
+        "scheduledTime":  "09:00 AM",
+        "status":  "Given",
+        "administeredBy":  "Nurse Demo",
+        "administeredAt":  "08:59 AM"
+    },
+    {
+        "id":  "M0003",
+        "patientId":  "P003",
+        "medication":  "Furosemide 20 mg",
+        "dose":  "20 mg",
+        "scheduledTime":  "07:30 AM",
+        "status":  "Pending",
+        "administeredBy":  "",
+        "administeredAt":  ""
+    }
+]

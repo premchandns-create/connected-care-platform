@@ -7,6 +7,29 @@ import './patient.css';
 
 const API = 'http://localhost:5080/api';
 
+// Global toast emitter (use window.__showToast to emit from anywhere)
+;(window as any).__showToast = (msg:string, type='info', duration=4000) => {
+  try{ window.dispatchEvent(new CustomEvent('cc-toast', { detail: { id: Date.now() + Math.random().toString(36).slice(2,6), msg, type, duration } })); }catch(e){ console.error('toast emit failed', e); }
+};
+
+// Global undo timeout (can be overridden by setting window.__UNDO_TIMEOUT = millis)
+const GLOBAL_UNDO_TIMEOUT = (window as any).__UNDO_TIMEOUT || 8000;
+
+function ToastHost(){
+  const [toasts,setToasts] = useState<any[]>([]);
+  useEffect(()=>{
+    const h = (e:any)=>{
+      const d = e.detail;
+      setToasts(t=>[...t, d]);
+      if(d.duration && d.duration>0){ setTimeout(()=> setToasts(t=>t.filter(x=>x.id!==d.id)), d.duration); }
+    };
+    window.addEventListener('cc-toast', h as EventListener);
+    return ()=> window.removeEventListener('cc-toast', h as EventListener);
+  },[]);
+  return <div className="toast-host">{toasts.map(t=> <div key={t.id} className={"toast "+(t.type||'')}>{t.msg}</div>)}</div>;
+}
+
+
 type Role = 'Admin'|'Doctor'|'Nurse'|'Management'|'Executive'|'Emergency';
 
 type Patient = {id:string;name:string;mrn:string;status:string;room:string;doctor:string;nurse:string;condition:string;priority:number;lastEvent:string};
@@ -157,6 +180,7 @@ function App(){
       </main>
     </div>
     {ai && <AiDrawer ai={ai} close={()=>setAi(null)} loading={loading}/>} 
+    <ToastHost />
   </div>
 }
 
@@ -313,7 +337,7 @@ function AdminView({runAi,page,setPage}:{runAi:(p:string,b?:unknown)=>Promise<vo
     const [form,setForm]=useState<Partial<Patient>>(()=>editingPatient||{});
     useEffect(()=>{ setForm(editingPatient||{}); },[editingPatient]);
     const save = async ()=>{
-      if(!form.name){ alert('Name required'); return; }
+      if(!form.name){ (window as any).__showToast('Name required','error'); return; }
       if(form.id && form.id.startsWith('P')){
         await updatePatient(form.id!,{ Name: form.name, Mrn: form.mrn, Status: form.status, Room: form.room, Doctor: form.doctor, Nurse: form.nurse, Condition: form.condition, Priority: form.priority, LastEvent: form.lastEvent });
       } else {
@@ -486,9 +510,10 @@ function AdminView({runAi,page,setPage}:{runAi:(p:string,b?:unknown)=>Promise<vo
       setMeds(prev => prev.map(x=>{ const xid = x.id || x.Id; if(xid===id) return {...x, status:'Given', administeredBy:'You', administeredAt: new Date().toLocaleString()}; return x;}));
 
       // show undo option for a short window
+      const UNDO_TIMEOUT = (window as any).__UNDO_TIMEOUT || GLOBAL_UNDO_TIMEOUT || 8000;
       const timer = window.setTimeout(()=>{
         setOptimistic(curr=>{ const copy = {...curr}; delete copy[id]; return copy; });
-      }, 8000);
+      }, UNDO_TIMEOUT);
       setOptimistic(curr=>({ ...curr, [id]: { prevStatus, timer } }));
 
       // send request to server
@@ -503,7 +528,7 @@ function AdminView({runAi,page,setPage}:{runAi:(p:string,b?:unknown)=>Promise<vo
         // rollback UI immediately
         setMeds(prev => prev.map(x=>{ const xid = x.id || x.Id; if(xid===id) return {...x, status: prevStatus, administeredBy:'', administeredAt:''}; return x;}));
         setOptimistic(curr=>{ const copy = {...curr}; if(copy[id]){ clearTimeout(copy[id].timer); delete copy[id]; } return copy; });
-        alert('Failed to update medication status');
+        (window as any).__showToast('Failed to update medication status','error');
       }finally{
         setUpdatingMedIds(s=>s.filter(x=>x!==id));
       }
@@ -528,7 +553,7 @@ function AdminView({runAi,page,setPage}:{runAi:(p:string,b?:unknown)=>Promise<vo
         await loadAll();
       }catch(e){
         console.error(e);
-        alert('Failed to revert medication status on server');
+        (window as any).__showToast('Failed to revert medication status on server','error');
       }finally{
         setUpdatingMedIds(s=>s.filter(x=>x!==id));
       }
