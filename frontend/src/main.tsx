@@ -13,6 +13,11 @@ const API = 'http://localhost:5080/api';
 };
 
 // Global undo timeout (can be overridden by setting window.__UNDO_TIMEOUT = millis)
+// Enable test mode via URL: ?testMode=1 and optionally set undo timeout via ?undoTimeout=20000
+const __urlParams = new URLSearchParams(window.location.search);
+if(__urlParams.get('testMode') === '1' || __urlParams.get('testMode') === 'true') (window as any).__TEST_MODE = true;
+const __paramUndo = __urlParams.get('undoTimeout');
+if(__paramUndo){ (window as any).__UNDO_TIMEOUT = parseInt(__paramUndo,10) || (window as any).__UNDO_TIMEOUT; }
 const GLOBAL_UNDO_TIMEOUT = (window as any).__UNDO_TIMEOUT || 8000;
 
 function ToastHost(){
@@ -211,11 +216,150 @@ function pageSubtitle(r:Role){return ({Admin:'System-wide visibility into patien
 
 function RoleView({role,dashboard,patients,alerts,runAi,ai,loading,ask,setAsk,askAi,adminPage,setAdminPage}:{role:Role;dashboard:any;patients:Patient[];alerts:Alert[];runAi:(p:string,b?:unknown)=>Promise<void>;ai:Ai|null;loading:boolean;ask:string;setAsk:(s:string)=>void;askAi:()=>Promise<void>;adminPage?:string;setAdminPage?: (p:string)=>void}){
   if(role==='Admin') return <AdminView runAi={runAi} page={adminPage||'overview'} setPage={(p:string)=>setAdminPage && setAdminPage(p)} />;
+  if(role==='Doctor') return <DoctorView patients={patients} alerts={alerts} runAi={runAi} loading={loading}/>;
   if(role==='Nurse') return <NurseView patients={patients} alerts={alerts} runAi={runAi} loading={loading}/>;
   if(role==='Management') return <ManagementView dashboard={dashboard} runAi={runAi} ask={ask} setAsk={setAsk} askAi={askAi}/>;
   if(role==='Executive') return <ExecutiveView dashboard={dashboard} runAi={runAi}/>;
   if(role==='Emergency') return <EmergencyView alerts={alerts} runAi={runAi}/>;
   return <StandardView role={role} dashboard={dashboard} patients={patients} alerts={alerts} runAi={runAi} loading={loading}/>;
+}
+
+// Doctor-specific workspace: includes Dashboard, Patients, Schedule, Consultations
+function DoctorView({patients,alerts,runAi,loading}:{patients:Patient[];alerts:Alert[];runAi:(p:string,b?:unknown)=>Promise<void>;loading:boolean}){
+  const navigate = useNavigate();
+  const location = useLocation();
+  const parts = location.pathname.split('/').filter(Boolean);
+  const page = parts[1] || 'dashboard';
+  const [mar,setMar] = useState<any[]>([]);
+  useEffect(()=>{ let mounted=true; get<any[]>('/mar').then(m=>{ if(mounted) setMar(Array.isArray(m)?m:(m && m.value?m.value:[])) }).catch(()=>{}); return ()=>{ mounted=false } },[]);
+
+  const SchedulePage = ()=>{
+    const [weekOffset,setWeekOffset] = useState(0);
+    const hours = Array.from({length:15},(_,i)=>6+i); // 6:00 - 20:00
+    const startOfWeek = (base:Date, offset:number)=>{
+      const d = new Date(base);
+      const day = d.getDay(); // 0=Sun
+      const diff = d.getDate() - day + (0); // week starting Sunday
+      d.setDate(diff + offset*7);
+      d.setHours(0,0,0,0);
+      return d;
+    };
+    const start = startOfWeek(new Date(), weekOffset);
+    const days = Array.from({length:7},(_,i)=>{ const d = new Date(start); d.setDate(start.getDate()+i); return d; });
+
+    // bucket meds by dayIndex and hour
+    const buckets: Record<string, any[]> = {};
+    mar.forEach((m:any)=>{
+      const sched = m.scheduledTime || m.ScheduledTime;
+      const dt = sched ? new Date(sched) : null;
+      if(!dt || isNaN(dt.getTime())){
+        // put into a misc bucket
+        const key = 'misc'; if(!buckets[key]) buckets[key]=[]; buckets[key].push(m); return;
+      }
+      const dayIndex = Math.floor((dt.setHours(0,0,0,0) - start.getTime()) / (24*60*60*1000));
+      const hour = new Date(m.scheduledTime||m.ScheduledTime).getHours();
+      const key = `${dayIndex}:${hour}`;
+      if(!buckets[key]) buckets[key]=[];
+      buckets[key].push(m);
+    });
+
+    const formatDay = (d:Date)=> d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+    const formatTime = (h:number)=> `${h.toString().padStart(2,'0')}:00`;
+
+    const markGivenCell = async (m:any)=>{
+      const id = m.id || m.Id;
+      try{
+        const res = await fetch(API+`/mar/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({ Status: 'Given', AdministeredBy: 'Dr Demo', AdministeredAt: new Date().toLocaleString() })});
+        if(!res.ok) throw new Error(await res.text());
+        (window as any).__showToast('Marked Given','success');
+        const updated = await (await fetch(API+'/mar')).json();
+        setMar(Array.isArray(updated)?updated:(updated && updated.value?updated.value:[]));
+      }catch(e){ console.error(e); (window as any).__showToast('Failed to mark Given','error'); }
+    };
+
+    return <div>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+        <h3>Schedule — Week of {start.toLocaleDateString()}</h3>
+        <div>
+          <button className="ghost" onClick={()=>setWeekOffset(w=>w-1)}>◀ Prev</button>
+          <button className="ghost" onClick={()=>setWeekOffset(0)}>This</button>
+          <button className="ghost" onClick={()=>setWeekOffset(w=>w+1)}>Next ▶</button>
+        </div>
+      </div>
+
+      <section className="panel" style={{overflowX:'auto'}}>
+        <table style={{width:'100%',borderCollapse:'collapse'}}>
+          <thead>
+            <tr>
+              <th style={{width:80}}>Time</th>
+              {days.map((d,idx)=><th key={idx} style={{textAlign:'left',padding:8,borderLeft:'1px solid #eee'}}>{formatDay(d)}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {hours.map(h=> <tr key={h} style={{borderTop:'1px solid #f0f0f0'}}>
+              <td style={{padding:6,verticalAlign:'top',fontSize:12,color:'#666'}}>{formatTime(h)}</td>
+              {days.map((d,di)=>{
+                const key = `${di}:${h}`;
+                const items = buckets[key] || [];
+                return <td key={di} style={{padding:8,verticalAlign:'top',minWidth:160,borderLeft:'1px solid #fafafa'}}>
+                  {items.length===0 ? <div style={{opacity:0.45,fontSize:12}}>—</div> : items.map((it:any)=>{
+                    const pid = it.patientId || it.PatientId;
+                    const p = patients.find(pp=>pp.id===pid) || {name:pid};
+                    const status = it.status || it.Status;
+                    return <div key={it.id||it.Id} style={{padding:6,borderRadius:6,background:'#fff',boxShadow:'0 0 0 1px rgba(0,0,0,0.03)',marginBottom:6}}>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}><div><b>{p.name}</b><div style={{fontSize:12,color:'#444'}}>{it.medication||it.Medication}</div></div><div style={{textAlign:'right'}}><Status value={status}/></div></div>
+                      <div style={{marginTop:8,display:'flex',gap:8,justifyContent:'flex-end'}}>
+                        {status !== 'Given' && <button className="primary" onClick={()=>markGivenCell(it)}>Mark Given</button>}
+                      </div>
+                    </div>;
+                  })}
+                </td>;
+              })}
+            </tr>)}
+          </tbody>
+        </table>
+
+        {/* misc bucket for items without parseable date */}
+        {buckets['misc'] && buckets['misc'].length>0 && <div style={{marginTop:12}}>
+          <h4>Unscheduled / unknown time</h4>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:8}}>
+            {buckets['misc'].map((it:any)=>{
+              const pid = it.patientId || it.PatientId;
+              const p = patients.find(pp=>pp.id===pid) || {name:pid};
+              const status = it.status || it.Status;
+              return <div key={it.id||it.Id} style={{padding:8,background:'#fff',borderRadius:6,boxShadow:'0 0 0 1px rgba(0,0,0,0.03)'}}>
+                <b>{p.name}</b>
+                <div style={{fontSize:12}}>{it.medication||it.Medication}</div>
+                <div style={{marginTop:8}}>{status !== 'Given' && <button className="primary" onClick={()=>markGivenCell(it)}>Mark Given</button>}</div>
+              </div>;
+            })}
+          </div>
+        </div>}
+
+      </section>
+    </div>;
+  };
+
+  const ConsultationsPage = ()=>{
+    // Demo consults derived from incidents
+    const consults = alerts.map(a=>({ id: a.id, patient: a.patient, severity: a.severity, time: a.time, desc: a.description, status: a.status }));
+    return <div>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}><h3>Consultations</h3><button className="primary" onClick={()=>runAi('/ai/patient-summary',{patientId:patients[0]?.id})}>Triage with AI</button></div>
+      <section className="panel"><table style={{width:'100%'}}><thead><tr><th>ID</th><th>Patient</th><th>Severity</th><th>Time</th><th>Status</th><th>Actions</th></tr></thead><tbody>{consults.map(c=> <tr key={c.id}><td>{c.id}</td><td><b>{c.patient}</b></td><td><Status value={c.severity}/></td><td>{c.time}</td><td>{c.status}</td><td><button className="ghost" onClick={()=>{ (window as any).__showToast('Assigned to you','info'); }}>Assign</button> <button className="ghost" onClick={()=>{ (window as any).__showToast('Marked complete','success'); }}>Complete</button></td></tr>)}</tbody></table></section>
+    </div>;
+  };
+
+  const PatientsPage = ()=> <div className="panel"><h3>My Patients</h3><div className="patientCards">{patients.map(p=> <div key={p.id} className="patientCard"><div><b>{p.name}</b><small>{p.room} • {p.condition}</small></div><Status value={p.status}/><button className="ghost" onClick={()=>navigate(`/admin/patient/${p.id}`)}>View</button></div>)}</div></div>;
+
+  const Dashboard = ()=> <StandardView role={'Doctor'} dashboard={{totalPatients:patients.length,activeAlerts:alerts.length,criticalAlerts:2,careTeams:5,units:[]}} patients={patients} alerts={alerts} runAi={runAi} loading={loading}/>;
+
+  // render based on page
+  switch(page){
+    case 'patients': return <PatientsPage/>;
+    case 'schedule': return <SchedulePage/>;
+    case 'consultations': return <ConsultationsPage/>;
+    case 'dashboard': default: return <Dashboard/>;
+  }
 }
 
 function AdminView({runAi,page,setPage}:{runAi:(p:string,b?:unknown)=>Promise<void>; page:string; setPage:(p:string)=>void}){
@@ -503,7 +647,10 @@ function AdminView({runAi,page,setPage}:{runAi:(p:string,b?:unknown)=>Promise<vo
       const pid = m.patientId || m.PatientId;
       const medName = m.medication || m.Medication;
       const patientName = (patients.find(p=>p.id===pid)||{name:pid}).name;
-      if(!confirm(`Mark ${medName} for ${patientName} as Given?`)) return;
+      const testMode = (window as any).__TEST_MODE;
+      if(!testMode){
+        if(!confirm(`Mark ${medName} for ${patientName} as Given?`)) return;
+      }
 
       const prevStatus = m.status || m.Status || 'Pending';
       // optimistic UI update
