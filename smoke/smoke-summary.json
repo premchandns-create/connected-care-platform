@@ -1,0 +1,47 @@
+﻿{
+    "timestamp":  "2026-08-12 19:54:53Z",
+    "results":  [
+                    {
+                        "name":  "dashboard",
+                        "url":  "http://localhost:5080/api/dashboard",
+                        "status":  "OK",
+                        "file":  "C:\\VenSun\\connected-care-platform\\smoke\\dashboard.json"
+                    },
+                    {
+                        "name":  "health",
+                        "url":  "http://localhost:5080/api/health",
+                        "status":  "OK",
+                        "file":  "C:\\VenSun\\connected-care-platform\\smoke\\health.json"
+                    },
+                    {
+                        "name":  "patients",
+                        "url":  "http://localhost:5080/api/patients",
+                        "status":  "OK",
+                        "file":  "C:\\VenSun\\connected-care-platform\\smoke\\patients.json"
+                    },
+                    {
+                        "name":  "alerts",
+                        "url":  "http://localhost:5080/api/alerts",
+                        "status":  "OK",
+                        "file":  "C:\\VenSun\\connected-care-platform\\smoke\\alerts.json"
+                    },
+                    {
+                        "name":  "ai_patient_summary",
+                        "url":  "/api/ai/patient-summary",
+                        "status":  "OK",
+                        "file":  "C:\\VenSun\\connected-care-platform\\smoke\\ai_patient_summary.json"
+                    },
+                    {
+                        "name":  "ai_nurse_brief",
+                        "url":  "/api/ai/nurse-brief",
+                        "status":  "OK",
+                        "file":  "C:\\VenSun\\connected-care-platform\\smoke\\ai_nurse_brief.json"
+                    },
+                    {
+                        "name":  "ai_management_brief",
+                        "url":  "/api/ai/management-brief",
+                        "status":  "OK",
+                        "file":  "C:\\VenSun\\connected-care-platform\\smoke\\ai_management_brief.json"
+                    }
+                ]
+}

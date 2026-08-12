@@ -1,0 +1,74 @@
+﻿[
+    {
+        "id":  "P001",
+        "name":  "Patricia Smith",
+        "mrn":  "MRN-10021",
+        "status":  "Critical",
+        "room":  "Room 302",
+        "doctor":  "Dr. Sarah Wilson",
+        "nurse":  "Emma Davis",
+        "condition":  "Heart failure; recent critical alert",
+        "priority":  5,
+        "lastEvent":  "Critical alert reviewed; physician follow-up pending"
+    },
+    {
+        "id":  "P002",
+        "name":  "Michael Davis",
+        "mrn":  "MRN-10022",
+        "status":  "High",
+        "room":  "Room 201",
+        "doctor":  "Dr. Michael Brown",
+        "nurse":  "James Taylor",
+        "condition":  "Post-operative recovery",
+        "priority":  4,
+        "lastEvent":  "Medication follow-up required"
+    },
+    {
+        "id":  "P003",
+        "name":  "Linda Martinez",
+        "mrn":  "MRN-10023",
+        "status":  "Medium",
+        "room":  "Room 411",
+        "doctor":  "Dr. Sarah Wilson",
+        "nurse":  "Emma Davis",
+        "condition":  "Diabetes management",
+        "priority":  3,
+        "lastEvent":  "Routine follow-up observation due"
+    },
+    {
+        "id":  "P004",
+        "name":  "Robert Johnson",
+        "mrn":  "MRN-10024",
+        "status":  "Stable",
+        "room":  "Room 105",
+        "doctor":  "Dr. Sarah Wilson",
+        "nurse":  "Emma Davis",
+        "condition":  "General recovery",
+        "priority":  1,
+        "lastEvent":  "Discharge planning in progress"
+    },
+    {
+        "id":  "P005",
+        "name":  "Mary Williams",
+        "mrn":  "MRN-10025",
+        "status":  "Stable",
+        "room":  "Room 210",
+        "doctor":  "Dr. Michael Brown",
+        "nurse":  "James Taylor",
+        "condition":  "Hypertension",
+        "priority":  1,
+        "lastEvent":  "Medication administered"
+    },
+    {
+        "id":  "P006",
+        "name":  "James Brown",
+        "mrn":  "MRN-10026",
+        "status":  "Medium",
+        "room":  "Room 114",
+        "doctor":  "Dr. David Lee",
+        "nurse":  "Sophia Martinez",
+        "condition":  "Post-surgical monitoring",
+        "priority":  2,
+        "lastEvent":  "Vitals recorded"
+    }
+]

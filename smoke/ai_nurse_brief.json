@@ -1,0 +1,21 @@
+﻿{
+    "title":  "AI Care Assistant",
+    "summary":  "Good morning, Emma. Three items are recommended for review based on the demo task and alert queue.",
+    "insights":  [
+                     "1 critical alert",
+                     "1 overdue medication task",
+                     "1 follow-up task"
+                 ],
+    "recommendedActions":  [
+                               "Review the critical alert",
+                               "Complete the overdue medication task",
+                               "Record the pending follow-up"
+                           ],
+    "sources":  [
+                    "Assigned patients",
+                    "Medication queue",
+                    "Alerts",
+                    "Tasks"
+                ],
+    "humanReviewRequired":  true
+}

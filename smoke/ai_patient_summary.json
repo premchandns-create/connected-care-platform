@@ -1,0 +1,21 @@
+﻿{
+    "title":  "AI Patient Summary",
+    "summary":  "Patricia Smith is currently critical in Room 302. The assigned physician is Dr. Sarah Wilson and care-team owner is Emma Davis.",
+    "insights":  [
+                     "Heart failure; recent critical alert",
+                     "Priority level: 5",
+                     "Latest recorded event: Critical alert reviewed; physician follow-up pending"
+                 ],
+    "recommendedActions":  [
+                               "Review the recent timeline",
+                               "Confirm outstanding care tasks",
+                               "Escalate only according to authorized clinical workflow"
+                           ],
+    "sources":  [
+                    "Patient profile",
+                    "Recent events",
+                    "Care tasks",
+                    "Vitals"
+                ],
+    "humanReviewRequired":  true
+}

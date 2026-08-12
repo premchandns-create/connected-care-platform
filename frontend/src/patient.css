@@ -1,0 +1,25 @@
+.patientDetailWrap{display:flex;gap:16px}.patientSide{width:300px}.patientCard{padding:16px;border-radius:10px;background:#fff;border:1px solid #e6ebf5;display:flex;justify-content:space-between;align-items:center;gap:12px}.patientCard h2{margin:0;font-size:18px;color:#14234d}.patientCard small{color:#7f8ba3}.patientContent{flex:1}.tabs{display:flex;gap:8px;margin-bottom:12px}.tabs button{padding:8px 12px;border-radius:8px;border:1px solid #e6ebf5;background:#fff;cursor:pointer;font-size:12px}.tabs button.active{background:#245fd1;color:#fff;border-color:#245fd1}.miniCard{padding:12px;border-radius:8px;border:1px solid #edf2f8;background:#fff}.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.patientSide .panel{margin-top:12px}.patientContent .panel{min-height:260px}.patientContent h3{margin-top:0}.patientSide .primary{width:100%;display:block;margin-bottom:8px}.patientSide .ghost{width:100%;display:block}
+
+/* Drawer and form enhancements for patient modal */
+.drawerBackdrop{position:fixed;inset:0;background:rgba(10,20,40,0.45);display:flex;align-items:center;justify-content:center;z-index:60}
+.drawer{background:#fff;border-radius:12px;box-shadow:0 12px 30px rgba(10,20,40,0.25);max-height:90vh;overflow:auto}
+.drawerHead{display:flex;justify-content:space-between;align-items:center;padding:18px;border-bottom:1px solid #eef3fb}
+.drawerHead h3{margin:0;font-size:16px}
+.drawerSection{padding:16px}
+.drawerSection label{display:block;font-size:12px;color:#44556f;margin-bottom:6px}
+.drawerSection input, .drawerSection select, .drawerSection textarea{width:100%;padding:10px;border:1px solid #e6eef8;border-radius:8px;font-size:13px;background:#fff;color:#122238}
+.drawerSection textarea{min-height:100px}
+.drawerFooter{display:flex;gap:8px;justify-content:flex-end;padding:14px;border-top:1px solid #eef3fb}
+.iconBtn{border:0;background:transparent;cursor:pointer;padding:6px;border-radius:8px}
+.formError{color:#d92f2f;font-size:12px;margin-top:6px}
+.formError{color:#d92f2f;font-size:12px;margin-top:6px}
+/* tags */
+.tagInput{display:flex;flex-direction:column;gap:8px}
+.tagInput .tags{display:flex;flex-wrap:wrap;gap:8px}
+.tag{background:#eef6ff;border:1px solid #d2e5ff;padding:6px 8px;border-radius:999px;font-size:12px;color:#1652b3;display:inline-flex;align-items:center;gap:8px}
+.tagRemove{border:0;background:transparent;cursor:pointer;color:#1652b3;font-weight:700}
+
+/* capacity stepper */
+.stepper{display:flex;align-items:center;gap:8px}
+.stepper .iconBtn{width:36px;height:36px;border-radius:8px;border:1px solid #e6eef8;background:#fff;display:inline-flex;align-items:center;justify-content:center;color:#245fd1}
+.stepper input[type="number"]{padding:8px;border:1px solid #e6eef8;border-radius:6px}

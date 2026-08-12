@@ -1,0 +1,38 @@
+﻿[
+    {
+        "id":  "A1042",
+        "time":  "10:30 AM",
+        "patient":  "Patricia Smith",
+        "severity":  "Critical",
+        "description":  "Critical patient alert; physician review pending",
+        "status":  "Open",
+        "owner":  "Emma Davis"
+    },
+    {
+        "id":  "A1041",
+        "time":  "10:28 AM",
+        "patient":  "Michael Davis",
+        "severity":  "High",
+        "description":  "Medication follow-up required",
+        "status":  "Open",
+        "owner":  "James Taylor"
+    },
+    {
+        "id":  "A1040",
+        "time":  "10:25 AM",
+        "patient":  "Linda Martinez",
+        "severity":  "Medium",
+        "description":  "Routine follow-up observation",
+        "status":  "Open",
+        "owner":  "Emma Davis"
+    },
+    {
+        "id":  "A1039",
+        "time":  "10:20 AM",
+        "patient":  "Robert Johnson",
+        "severity":  "Medium",
+        "description":  "Discharge planning update",
+        "status":  "Acknowledged",
+        "owner":  "Emma Davis"
+    }
+]

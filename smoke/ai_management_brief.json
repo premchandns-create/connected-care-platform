@@ -1,0 +1,21 @@
+﻿{
+    "title":  "AI Operations Brief",
+    "summary":  "Operations are broadly stable, with three areas recommended for management review.",
+    "insights":  [
+                     "Emergency response time increased 14% in the demo trend",
+                     "18 care tasks are overdue",
+                     "Medication compliance is below target in one unit"
+                 ],
+    "recommendedActions":  [
+                               "Review response-time drivers",
+                               "Inspect workload in Med-Surg Unit 2",
+                               "Review medication workflow exceptions"
+                           ],
+    "sources":  [
+                    "Operations dashboard",
+                    "Incidents",
+                    "Staff workload",
+                    "Medication compliance"
+                ],
+    "humanReviewRequired":  true
+}

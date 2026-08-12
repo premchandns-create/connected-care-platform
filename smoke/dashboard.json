@@ -1,0 +1,73 @@
+﻿{
+    "totalPatients":  2350,
+    "activeAlerts":  12,
+    "criticalAlerts":  3,
+    "careTeams":  45,
+    "openTasks":  156,
+    "medicationCompliance":  92,
+    "avgResponseMinutes":  4.2,
+    "alertTrend":  [
+                       {
+                           "label":  "12 AM",
+                           "critical":  1,
+                           "high":  2,
+                           "medium":  1,
+                           "low":  0
+                       },
+                       {
+                           "label":  "4 AM",
+                           "critical":  2,
+                           "high":  1,
+                           "medium":  2,
+                           "low":  1
+                       },
+                       {
+                           "label":  "8 AM",
+                           "critical":  3,
+                           "high":  2,
+                           "medium":  2,
+                           "low":  1
+                       },
+                       {
+                           "label":  "12 PM",
+                           "critical":  4,
+                           "high":  3,
+                           "medium":  2,
+                           "low":  2
+                       },
+                       {
+                           "label":  "4 PM",
+                           "critical":  5,
+                           "high":  4,
+                           "medium":  2,
+                           "low":  1
+                       },
+                       {
+                           "label":  "8 PM",
+                           "critical":  3,
+                           "high":  3,
+                           "medium":  2,
+                           "low":  1
+                       }
+                   ],
+    "units":  [
+                  {
+                      "unit":  "Cardiology Unit",
+                      "issue":  "High alert volume + tasks",
+                      "severity":  "High",
+                      "value":  "9 alerts"
+                  },
+                  {
+                      "unit":  "Med-Surg Unit 2",
+                      "issue":  "Overdue tasks",
+                      "severity":  "High",
+                      "value":  "18 overdue"
+                  },
+                  {
+                      "unit":  "ICU",
+                      "issue":  "Staffing below target",
+                      "severity":  "Medium",
+                      "value":  "110% load"
+                  }
+              ]
+}
