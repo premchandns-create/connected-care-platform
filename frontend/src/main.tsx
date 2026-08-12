@@ -472,23 +472,71 @@ function AdminView({runAi,page,setPage}:{runAi:(p:string,b?:unknown)=>Promise<vo
   const TasksPage = ()=> <div className="panel"><h3>Task Management</h3><p>Task management UI will be implemented here.</p></div>;
   const MedsPage = ()=>{
     const [updatingMedIds,setUpdatingMedIds] = useState<string[]>([]);
+    const [optimistic,setOptimistic] = useState<Record<string,{prevStatus:string, timer:number}>>({});
+
     const markGiven = async (m:any)=>{
       const id = m.id || m.Id;
       const pid = m.patientId || m.PatientId;
       const medName = m.medication || m.Medication;
       const patientName = (patients.find(p=>p.id===pid)||{name:pid}).name;
       if(!confirm(`Mark ${medName} for ${patientName} as Given?`)) return;
+
+      const prevStatus = m.status || m.Status || 'Pending';
+      // optimistic UI update
+      setMeds(prev => prev.map(x=>{ const xid = x.id || x.Id; if(xid===id) return {...x, status:'Given', administeredBy:'You', administeredAt: new Date().toLocaleString()}; return x;}));
+
+      // show undo option for a short window
+      const timer = window.setTimeout(()=>{
+        setOptimistic(curr=>{ const copy = {...curr}; delete copy[id]; return copy; });
+      }, 8000);
+      setOptimistic(curr=>({ ...curr, [id]: { prevStatus, timer } }));
+
+      // send request to server
       setUpdatingMedIds(s=>[...s,id]);
       try{
         const body = { Status: 'Given', AdministeredBy: 'Nurse Demo', AdministeredAt: new Date().toLocaleString() };
-        await fetch(API+`/mar/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-        await loadAll();
-      }catch(e){ console.error(e); alert('Failed to update medication status'); }
-      finally{ setUpdatingMedIds(s=>s.filter(x=>x!==id)); }
+        const res = await fetch(API+`/mar/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+        if(!res.ok){ throw new Error(await res.text()); }
+        // leave optimistic UI; it will clear after timer
+      }catch(e){
+        console.error(e);
+        // rollback UI immediately
+        setMeds(prev => prev.map(x=>{ const xid = x.id || x.Id; if(xid===id) return {...x, status: prevStatus, administeredBy:'', administeredAt:''}; return x;}));
+        setOptimistic(curr=>{ const copy = {...curr}; if(copy[id]){ clearTimeout(copy[id].timer); delete copy[id]; } return copy; });
+        alert('Failed to update medication status');
+      }finally{
+        setUpdatingMedIds(s=>s.filter(x=>x!==id));
+      }
     };
+
+    const undoMark = async (m:any)=>{
+      const id = m.id || m.Id;
+      const entry = optimistic[id];
+      if(!entry) return;
+      // cancel optimistic timer
+      clearTimeout(entry.timer);
+      // revert UI immediately
+      setMeds(prev => prev.map(x=>{ const xid = x.id || x.Id; if(xid===id) return {...x, status: entry.prevStatus, administeredBy:'', administeredAt:''}; return x;}));
+      setOptimistic(curr=>{ const copy = {...curr}; delete copy[id]; return copy; });
+
+      // send revert to server to restore previous status
+      setUpdatingMedIds(s=>[...s,id]);
+      try{
+        const body = { Status: entry.prevStatus, AdministeredBy: '', AdministeredAt: '' };
+        const res = await fetch(API+`/mar/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+        if(!res.ok) throw new Error(await res.text());
+        await loadAll();
+      }catch(e){
+        console.error(e);
+        alert('Failed to revert medication status on server');
+      }finally{
+        setUpdatingMedIds(s=>s.filter(x=>x!==id));
+      }
+    };
+
     return <div className="panel"><h3>Medication Administration (MAR)</h3>
       <table style={{width:'100%'}}><thead><tr><th>Patient</th><th>Medication</th><th>Dose</th><th>Scheduled</th><th>Status</th><th>Actions</th></tr></thead>
-      <tbody>{meds.map(m=>{ const id = m.id || m.Id; const pid = m.patientId || m.PatientId; const med = m.medication || m.Medication; const dose = m.dose || m.Dose; const sched = m.scheduledTime || m.ScheduledTime; const status = m.status || m.Status; const updating = updatingMedIds.includes(id); return <tr key={id}><td><b>{(patients.find(p=>p.id===pid)||{name:pid}).name}</b></td><td>{med}</td><td>{dose}</td><td>{sched}</td><td><Status value={status}/></td><td>{status!=='Given' && <button className="primary" onClick={()=>markGiven(m)} disabled={updating}>{updating? 'Updating...' : 'Mark Given'}</button>}</td></tr> })}</tbody></table>
+      <tbody>{meds.map(m=>{ const id = m.id || m.Id; const pid = m.patientId || m.PatientId; const med = m.medication || m.Medication; const dose = m.dose || m.Dose; const sched = m.scheduledTime || m.ScheduledTime; const status = m.status || m.Status; const updating = updatingMedIds.includes(id); const isOptimistic = Boolean(optimistic[id]); return <tr key={id}><td><b>{(patients.find(p=>p.id===pid)||{name:pid}).name}</b></td><td>{med}</td><td>{dose}</td><td>{sched}</td><td><Status value={status}/></td><td>{isOptimistic ? <button className="ghost" onClick={()=>undoMark(m)} disabled={updating}>{updating? 'Reverting...' : 'Undo'}</button> : (status!=='Given' && <button className="primary" onClick={()=>markGiven(m)} disabled={updating}>{updating? 'Updating...' : 'Mark Given'}</button>)}</td></tr> })}</tbody></table>
     </div>;
   };
   const ReportsPage = ()=> <div className="panel"><h3>Reports & Analytics</h3><p>Reports UI and charts will be implemented here.</p></div>;
@@ -580,4 +628,9 @@ function MiniRows({rows}:{rows:string[][]}){return <div className="miniRows">{ro
 function TaskRow({name,type,color}:{name:string;type:string;color:string}){return <div className="taskRow"><span className={'dot '+color}/><div><b>{name}</b><small>{type}</small></div><ArrowRight size={14}/></div>}
 function Donut({value,label}:{value:string;label:string}){return <div className="donutWrap"><div className="donut"><b>{value}</b></div><div><b>{label}</b><p>On target <strong>92%</strong></p><p>Missed <strong>5%</strong></p><p>Late <strong>3%</strong></p></div></div>}
 function Chart({green=false}:{green?:boolean}){return <div className="chart"><div className={'spark '+(green?'green':'')}><i/><i/><i/><i/><i/><i/><i/><i/></div><div className="axis"><span>12 AM</span><span>4 AM</span><span>8 AM</span><span>12 PM</span><span>4 PM</span><span>8 PM</span></div></div>}
-function AiDrawer({ai,close,loading}:{ai:Ai;close:()=>void;loading:boolean}){return <div className="drawerBackdrop" onClick={close}><aside className="drawer" onClick={e=>e.stopPropagation()}><div className="drawerHead"><div><span className="eyebrow">AI ASSISTANCE</span><h2>{ai.title}</h2></div><button className="iconBtn" onClick={close}><X/></button></div><div className="reviewBanner"><ShieldCheck size={16}/><b>Human review required</b><span>AI output is assistance, not an autonomous clinical decision.</span></div><div className="drawerSection"><h4>Summary</h4><p>{ai.summa
+function AiDrawer({ai,close,loading}:{ai:Ai;close:()=>void;loading:boolean}){return <div className="drawerBackdrop" onClick={close}><aside className="drawer" onClick={e=>e.stopPropagation()}><div className="drawerHead"><div><span className="eyebrow">AI ASSISTANCE</span><h2>{ai.title}</h2></div><button className="iconBtn" onClick={close}><X/></button></div><div className="reviewBanner"><ShieldCheck size={16}/><b>Human review required</b><span>AI output is assistance, not an autonomous clinical decision.</span></div><div className="drawerSection"><h4>Summary</h4><p>{ai.summary}</p></div><div className="drawerSection"><h4>Key insights</h4><ul>{ai.insights.map((x,i)=><li key={i}>{x}</li>)}</ul></div><div className="drawerSection"><h4>Recommended actions</h4><ol>{ai.recommendedActions.map((x,i)=><li key={i}>{x}</li>)}</ol></div><div className="drawerSection"><h4>Supporting data</h4><div className="sourceList">{ai.sources.map(x=><span key={x}>{x}</span>)}</div></div><div className="drawerFooter"><button className="ghost" onClick={close}>Close</button><button className="primary" onClick={close}>Review & Continue</button></div></aside></div>}
+
+createRoot(document.getElementById('root')!).render(<BrowserRouter><App/></BrowserRouter>);
+
+
+
